@@ -26,7 +26,7 @@ Minecraft **1.20.1**, **Forge**, mod ID `useless_stretcher`, current source vers
 | 依赖 | Mod ID | 最低版本 / 加载范围 | 适用端 |
 | --- | --- | --- | --- |
 | Minecraft Forge | `forge` | 47 或更高；`[47,)` | 客户端、服务端 |
-| Minecraft | `minecraft` | 1.20.1 或更高；`[1.20.1,)` | 客户端、服务端 |
+| Minecraft | `minecraft` | 1.20.1 | 客户端、服务端 |
 | [Useless CE Unofficial](https://github.com/mybong9/Useless-CE-Unofficial) | `useless_mod` | 1.3.35 或更高；`[1.3.35,)` | 客户端、服务端 |
 | [Useless Core](https://github.com/mybong9/Useless-Core) | `useless_core` | 1.0.14 或更高；`[1.0.14,)` | 客户端、服务端 |
 | Applied Energistics 2（AE2） | `ae2` | 15.0.0 或更高；`[15.0.0,)` | 客户端、服务端 |
