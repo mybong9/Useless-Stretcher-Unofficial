@@ -25,10 +25,10 @@ Minecraft **1.20.1**, **Forge**, mod ID `useless_stretcher`, current source vers
 
 | 依赖 | Mod ID | 最低版本 / 加载范围 | 适用端 |
 | --- | --- | --- | --- |
-| Minecraft Forge | `forge` | 47 或更高；`[47,)` | 客户端、服务端 |
+| Minecraft Forge | `forge` | 47 或更高 | 客户端、服务端 |
 | Minecraft | `minecraft` | 1.20.1 | 客户端、服务端 |
-| [Useless CE Unofficial](https://github.com/mybong9/Useless-CE-Unofficial) | `useless_mod` | 1.3.35 或更高；`[1.3.35,)` | 客户端、服务端 |
-| [Useless Core](https://github.com/mybong9/Useless-Core) | `useless_core` | 1.0.14 或更高；`[1.0.14,)` | 客户端、服务端 |
+| [Useless CE Unofficial](https://github.com/mybong9/Useless-CE-Unofficial) | `useless_mod` | 1.3.35 或更高| 客户端、服务端 |
+| [Useless Core](https://github.com/mybong9/Useless-Core) | `useless_core` | 1.0.14 或更高| 客户端、服务端 |
 | Applied Energistics 2（AE2） | `ae2` | 15.0.0 或更高；`[15.0.0,)` | 客户端、服务端 |
 
 ### 可选联动
@@ -39,7 +39,7 @@ Minecraft **1.20.1**, **Forge**, mod ID `useless_stretcher`, current source vers
 
 MixinExtras 由 Useless Core 内置提供，通常无需单独安装。
 
-`[x,)` 表示不低于 x，且未设置版本上限；Minecraft 的宽松加载声明不代表本工程已支持其他 Minecraft 主版本。开发构建及本地编译 API 清单见 [BUILDING.md](BUILDING.md)。
+Minecraft 的宽松加载声明不代表本工程已支持其他 Minecraft 主版本。开发构建及本地编译 API 清单见 [BUILDING.md](BUILDING.md)。
 <!-- runtime-dependencies:end -->
 
 ## Source and attribution
