@@ -1,0 +1,71 @@
+package com.sorrowmist.useless.stretcher.mixin;
+
+
+import com.sorrowmist.uselesscore.api.component.CoreItemComponents;
+import com.sorrowmist.uselesscore.api.enums.tool.ToolTypeMode;
+import com.sorrowmist.useless.content.items.BeefToolVariants;
+import com.sorrowmist.uselesscore.api.component.UselessComponents;
+import com.sorrowmist.useless.stretcher.content.item.WondrousStaffItem;
+import com.sorrowmist.useless.stretcher.init.ModItems;
+import com.sorrowmist.uselesscore.api.component.UselessStretcherComponents;
+import net.minecraft.world.item.ItemStack;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+/**
+ * Keeps the wondrous staff's item identity when the G-menu switches tool mode back to
+ * NONE_MODE. Without this, Useless Mod's {@code BeefToolVariants.createForToolMode} always
+ * rebuilds a base {@code endless_beaf_item} (太初杖), so a staff that went through OmniTools
+ * (or any other tool mode) would silently turn back into the base staff.
+ */
+@Mixin(value = BeefToolVariants.class, remap = false)
+public abstract class BeefToolVariantsMixin {
+
+    @Inject(
+            method = "isBaseVariant(Lnet/minecraft/world/item/ItemStack;)Z",
+            at = @At("HEAD"), cancellable = true)
+    private static void uselessStretcher$staffIsBaseVariant(ItemStack source,
+                                                             CallbackInfoReturnable<Boolean> cir) {
+        if (isWondrousStaffSource(source)) {
+            cir.setReturnValue(true);
+        }
+    }
+
+    @Inject(
+            method = "withWrenchTag(Lnet/minecraft/world/item/ItemStack;Z)Lnet/minecraft/world/item/ItemStack;",
+            at = @At("HEAD"), cancellable = true)
+    private static void uselessStretcher$keepStaffWrenchTag(ItemStack source, boolean enabled,
+                                                             CallbackInfoReturnable<ItemStack> cir) {
+        if (!isWondrousStaffSource(source)) return;
+
+        ItemStack result = new ItemStack(ModItems.WONDROUS_STAFF.get());
+        com.sorrowmist.uselesscore.api.component.CoreItemStackData.copyData(source, result);
+        CoreItemComponents.set(result, UselessComponents.WrenchTagEnabledComponent.get(), enabled);
+        CoreItemComponents.set(result, UselessComponents.CurrentToolTypeComponent.get(), ToolTypeMode.NONE_MODE);
+        cir.setReturnValue(result);
+    }
+
+    @Inject(
+            method = "createForToolMode(Lnet/minecraft/world/item/ItemStack;Lcom/sorrowmist/uselesscore/api/enums/tool/ToolTypeMode;)Lnet/minecraft/world/item/ItemStack;",
+            at = @At("HEAD"),
+            cancellable = true)
+    private static void uselessStretcher$keepStaffIdentity(ItemStack source, ToolTypeMode mode,
+                                                           CallbackInfoReturnable<ItemStack> cir) {
+        if (mode != ToolTypeMode.NONE_MODE) return;
+        if (!isWondrousStaffSource(source)) return;
+
+        ItemStack result = new ItemStack(ModItems.WONDROUS_STAFF.get());
+        com.sorrowmist.uselesscore.api.component.CoreItemStackData.copyData(source, result);
+        CoreItemComponents.set(result, UselessComponents.WrenchTagEnabledComponent.get(), BeefToolVariants.isWrenchTagEnabled(source));
+        CoreItemComponents.set(result, UselessComponents.CurrentToolTypeComponent.get(), ToolTypeMode.NONE_MODE);
+        cir.setReturnValue(result);
+    }
+
+    private static boolean isWondrousStaffSource(ItemStack source) {
+        return source.getItem() instanceof WondrousStaffItem
+                || CoreItemComponents.has(source, UselessStretcherComponents.WONDROUS_STAFF_SPEED.get())
+                || CoreItemComponents.has(source, UselessStretcherComponents.WONDROUS_STAFF_MODE.get());
+    }
+}

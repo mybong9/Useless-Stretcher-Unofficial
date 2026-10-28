@@ -1,0 +1,13 @@
+{
+  "type": "useless_stretcher:capsule_overworld",
+  "generator": {
+    "type": "useless_stretcher:capsule_void",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "minecraft:plains"
+    },
+    "min_y": -64,
+    "height": 384,
+    "sea_level": 63
+  }
+}

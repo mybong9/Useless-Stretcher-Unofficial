@@ -1,0 +1,151 @@
+package com.sorrowmist.useless.stretcher.client;
+
+import com.sorrowmist.useless.stretcher.UselessStretcherMod;
+
+
+import com.sorrowmist.uselesscore.api.component.CoreItemComponents;
+import com.sorrowmist.useless.stretcher.content.entity.WondrousStaffAcceleration;
+import com.sorrowmist.useless.stretcher.init.ModItems;
+import com.sorrowmist.uselesscore.api.component.UselessStretcherComponents;
+import com.sorrowmist.useless.stretcher.network.Network;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.TickEvent.ClientTickEvent;
+import net.minecraftforge.client.event.InputEvent;
+
+/**
+ * Client-side controls for the wondrous staff:
+ * <ul>
+ *   <li>Shift + mouse wheel cycles the multiplier gear (off / x2 / x4 / x16 / x32 / x64 / x128
+ *       / x256 / x512 / x1024).</li>
+ *   <li>The X key opens a button-based speed and duration menu.</li>
+ * </ul>
+ * Shift is only used together with the wheel and with right-click, never captured on its own.
+ *
+ * <p>Gear presets are modeled after JDT Extras' {@code TimeMultitoolSpeedMode} (MIT).
+ */
+@EventBusSubscriber(modid = UselessStretcherMod.MODID, value = Dist.CLIENT)
+public final class WondrousStaffClient {
+    /** Preset multiplier gears. 0 = off. See {@code TimeMultitoolSpeedMode} (JDTE, MIT). */
+    private static final int[] GEARS = {0, 2, 4, 16, 32, 64, 128, 256, 512, 1024};
+
+    private WondrousStaffClient() {
+    }
+
+    @SubscribeEvent
+    public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
+        if (player == null || !player.isShiftKeyDown()) return;
+        InteractionHand hand = findStaffHand(player);
+        if (hand == null) return;
+        ItemStack held = player.getItemInHand(hand);
+
+        double delta = event.getScrollDelta();
+        if (delta == 0) return;
+        boolean up = delta > 0;
+
+        int speed = cycleGear(WondrousStaffAcceleration.getSpeed(held), up);
+        CoreItemComponents.set(held, UselessStretcherComponents.WONDROUS_STAFF_SPEED.get(), speed);
+        Network.sendWondrousStaffSpeed(speed, WondrousStaffAcceleration.getMode(held),
+                WondrousStaffAcceleration.isEnabled(held), hand);
+        showGearStatus(speed);
+        // This event would otherwise continue into vanilla inventory scrolling.
+        event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
+        if (player == null || mc.screen != null) return;
+        while (StretcherKeyBindings.STAFF_PHASE.consumeClick()) {
+            com.sorrowmist.useless.stretcher.UselessStretcherMod.NETWORK.sendToServer(
+                    new com.sorrowmist.useless.stretcher.network.StaffUtilityNetwork.TogglePhase());
+        }
+        if (StretcherKeyBindings.STANDALONE_TELEPORT.consumeClick()) {
+            com.sorrowmist.useless.stretcher.network.Port160Network.sendStandaloneTeleport();
+            return;
+        }
+        if (StretcherKeyBindings.WONDROUS_STAFF_TIME_STOP.consumeClick()) {
+            InteractionHand stopHand = findStaffHand(player);
+            if (stopHand != null) {
+                Network.sendStaffTimeStop(stopHand);
+                return;
+            }
+        }
+        // Right-click belongs to staff/block interaction, even if an old options.txt
+        // accidentally bound the configuration action to the right mouse button.
+        var configKey = StretcherKeyBindings.WONDROUS_STAFF_MODE.getKey();
+        if (configKey.getType() == com.mojang.blaze3d.platform.InputConstants.Type.MOUSE
+                && configKey.getValue() == org.lwjgl.glfw.GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            while (StretcherKeyBindings.WONDROUS_STAFF_MODE.consumeClick()) { }
+            StretcherKeyBindings.WONDROUS_STAFF_MODE.setKey(
+                    StretcherKeyBindings.WONDROUS_STAFF_MODE.getDefaultKey());
+            net.minecraft.client.KeyMapping.resetMapping();
+            mc.options.save();
+            return;
+        }
+        if (!StretcherKeyBindings.WONDROUS_STAFF_MODE.consumeClick()) return;
+
+        InteractionHand hand = findStaffHand(player);
+        if (hand != null) {
+            Network.sendStaffTutorialOpened();
+            StaffScreen.open(hand);
+        }
+    }
+
+    @SubscribeEvent(priority = net.minecraftforge.eventbus.api.EventPriority.HIGHEST)
+    public static void onKeyInput(InputEvent.Key event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (event.getAction() != org.lwjgl.glfw.GLFW.GLFW_PRESS || mc.screen != null) return;
+        if (event.getKey() != org.lwjgl.glfw.GLFW.GLFW_KEY_X) return;
+        // The raw X fallback is only a conflict-priority path for the default X binding.
+        // Once the player rebinds the action, X must be left to its new owner.
+        if (StretcherKeyBindings.WONDROUS_STAFF_MODE.getKey().getValue()
+                != org.lwjgl.glfw.GLFW.GLFW_KEY_X) return;
+        Player player = mc.player;
+        InteractionHand hand = player == null ? null : findStaffHand(player);
+        if (hand == null) return;
+        StretcherKeyBindings.WONDROUS_STAFF_MODE.consumeClick();
+        Network.sendStaffTutorialOpened();
+        StaffScreen.open(hand);
+    }
+
+    private static int cycleGear(int current, boolean up) {
+        int idx = indexOf(current);
+        int next = up ? (idx + 1) % GEARS.length : (idx - 1 + GEARS.length) % GEARS.length;
+        return GEARS[next];
+    }
+
+    private static int indexOf(int speed) {
+        if (speed <= 0) return 0;
+        for (int i = 1; i < GEARS.length; i++) {
+            if (speed <= GEARS[i]) return i;
+        }
+        return GEARS.length - 1;
+    }
+
+    private static void showGearStatus(int speed) {
+        Minecraft mc = Minecraft.getInstance();
+        Component text = speed <= 0
+                ? Component.translatable("gui.useless_stretcher.speed_off").withStyle(ChatFormatting.GRAY)
+                : Component.literal("x" + speed).withStyle(ChatFormatting.AQUA);
+        mc.gui.setOverlayMessage(text, false);
+    }
+
+    private static InteractionHand findStaffHand(Player player) {
+        if (player.getMainHandItem().is(ModItems.WONDROUS_STAFF.get())) return InteractionHand.MAIN_HAND;
+        if (player.getOffhandItem().is(ModItems.WONDROUS_STAFF.get())) return InteractionHand.OFF_HAND;
+        return null;
+    }
+}

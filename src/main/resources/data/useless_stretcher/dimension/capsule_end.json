@@ -1,0 +1,13 @@
+{
+  "type": "useless_stretcher:capsule_end",
+  "generator": {
+    "type": "useless_stretcher:capsule_void",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "minecraft:end_highlands"
+    },
+    "min_y": -64,
+    "height": 384,
+    "sea_level": 0
+  }
+}

@@ -1,0 +1,92 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.spongepowered.mixin' version '0.7.+'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+}
+
+version = mod_version
+group = mod_group_id
+base { archivesName = mod_id }
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+    options.encoding = 'UTF-8'
+}
+
+minecraft {
+    mappings channel: mapping_channel, version: mapping_version
+    copyIdeResources = true
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            mods { "${mod_id}" { source sourceSets.main } }
+        }
+        client { property 'forge.enabledGameTestNamespaces', mod_id }
+        server { property 'forge.enabledGameTestNamespaces', mod_id; args '--nogui' }
+        data {
+            workingDirectory project.file('run-data')
+            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+repositories {
+    maven { url 'https://modmaven.dev/' }
+    maven { url 'https://cursemaven.com' }
+    maven { url 'https://maven.blamejared.com' }
+    maven { url 'https://maven.covers1624.net/' }
+    maven { url 'https://maven.minecraftforge.net' }
+    mavenCentral()
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    compileOnly project(':useless_core')
+    runtimeOnly project(':useless_core')
+    implementation 'org.spongepowered:mixin:0.8.5'
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    compileOnly project(':useless_mod')
+    compileOnly files('../UselessMod/libs/mixinextras-common-0.5.5.jar')
+    runtimeOnly project(':useless_mod')
+    compileOnly fg.deobf('curse.maven:applied-energistics-2-223794:7148487')
+    compileOnly fg.deobf('curse.maven:apotheosis-313970:6461960')
+    compileOnly fg.deobf('curse.maven:apothicattributes-898963:5634071')
+    compileOnly fg.deobf('curse.maven:jei-238222:7037120')
+    compileOnly fg.deobf('curse.maven:geckolib-388172:7025129')
+    compileOnly fg.deobf('curse.maven:configured-457570:5180900')
+}
+
+mixin {
+    add sourceSets.main, 'useless_stretcher.refmap.json'
+    config 'useless_stretcher.mixins.json'
+    debug.export = true
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [
+            minecraft_version: minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            forge_version: forge_version,
+            forge_version_range: forge_version_range,
+            loader_version_range: loader_version_range,
+            mod_id: mod_id,
+            mod_name: mod_name,
+            mod_license: mod_license,
+            mod_version: mod_version,
+            mod_authors: mod_authors,
+            mod_description: mod_description
+    ]
+    inputs.properties replaceProperties
+    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) { expand replaceProperties }
+}
+
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.named('jar', Jar).configure { finalizedBy 'reobfJar' }
