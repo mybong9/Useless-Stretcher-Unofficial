@@ -43,7 +43,7 @@ public final class SelectableAE2Button extends Button {
                 font.plainSubstrByWidth(label.getString(), Math.max(1, getWidth() - 16)) + "…").withStyle(label.getStyle());
         if (com.sorrowmist.useless.client.gui.StaffGlass.aeStyle()) {
             com.sorrowmist.useless.client.gui.OriginalAeStaffStyle.buttonText(graphics, font, label,
-                    getX(), getY(), getWidth(), getHeight(), true, selected);
+                    getX(), getY(), getWidth(), getHeight(), active, selected);
             return;
         }
         graphics.drawString(font, label, getX() + (getWidth() - font.width(label)) / 2,

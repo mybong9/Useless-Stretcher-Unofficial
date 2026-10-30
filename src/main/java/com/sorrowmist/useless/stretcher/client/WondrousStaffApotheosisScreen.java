@@ -35,6 +35,7 @@ public final class WondrousStaffApotheosisScreen extends StaffScreen {
     private int saveDelay;
     private ApotheosisTableData.Boost lastSent;
     private boolean edited;
+    private SelectableAE2Button selectionButton;
 
     public WondrousStaffApotheosisScreen(Screen parent, InteractionHand hand) {
         super(Component.translatable("gui.useless_stretcher.staff_apotheosis.title"),
@@ -70,6 +71,7 @@ public final class WondrousStaffApotheosisScreen extends StaffScreen {
         SelectableAE2Button select = addRenderableWidget(new SelectableAE2Button(
                 panelLeft, footerY, buttonWidth, 18,
                 Component.translatable("gui.useless_stretcher.staff_apotheosis.select_table"), ignored -> {
+                    if (!com.sorrowmist.useless.stretcher.config.StretcherConfig.enableApotheosisCompat()) return;
                     selectionMode = !selectionMode;
                     edited = true;
                     save(true);
@@ -77,7 +79,8 @@ public final class WondrousStaffApotheosisScreen extends StaffScreen {
                     else rebuildWidgets();
                 }));
         select.setSelected(selectionMode);
-        ButtonHelp.set(select, "apotheosis_select_table");
+        selectionButton = select;
+        updateSelectionButton();
         SelectableAE2Button save = addRenderableWidget(new SelectableAE2Button(
                 panelLeft + buttonWidth + gap, footerY, buttonWidth, 18,
                 Component.translatable("gui.useless_stretcher.staff_apotheosis.save"), ignored ->
@@ -87,6 +90,15 @@ public final class WondrousStaffApotheosisScreen extends StaffScreen {
                 panelLeft + (buttonWidth + gap) * 2, footerY, panelWidth - (buttonWidth + gap) * 2, 18,
                 Component.translatable("gui.useless_stretcher.back"), ignored -> onClose()));
         setContentExtent(footerY - panelTop + 21);
+    }
+
+    private void updateSelectionButton() {
+        if (selectionButton == null) return;
+        selectionButton.active = com.sorrowmist.useless.stretcher.config.StretcherConfig.enableApotheosisCompat();
+        selectionButton.setSelected(selectionButton.active && selectionMode);
+        if (selectionButton.active) ButtonHelp.set(selectionButton, "apotheosis_select_table");
+        else selectionButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable(
+                "gui.useless_stretcher.staff_apotheosis.enable_config_hint")));
     }
 
     private void addValueSlider(int y, int rowWidth, String key, int min, int max, int initial,
@@ -159,6 +171,7 @@ public final class WondrousStaffApotheosisScreen extends StaffScreen {
 
     @Override public void tick() {
         super.tick();
+        if (selectionButton != null && selectionButton.active != com.sorrowmist.useless.stretcher.config.StretcherConfig.enableApotheosisCompat()) updateSelectionButton();
         if (dirty && --saveDelay <= 0) save(false);
     }
 

@@ -423,5 +423,6 @@
   "gui.useless_stretcher.staff_config.normal_short": "Normal · 30s",
   "gui.useless_stretcher.staff_config.permanent_short": "Permanent",
   "gui.useless_stretcher.staff_config.loot_refresh_short": "Loot refresh: %s",
-  "gui.useless_stretcher.staff_config.loot_refresh_help": "Refresh loot chests, including vanilla chests."
+  "gui.useless_stretcher.staff_config.loot_refresh_help": "Refresh loot chests, including vanilla chests.",
+  "gui.useless_stretcher.staff_apotheosis.enable_config_hint": "Table selection is disabled by the server. Ask the administrator to set enable = true under [apotheosis] in the current world's serverconfig/useless_stretcher-server.toml (singleplayer: saves/<world>/serverconfig/; dedicated server: <world>/serverconfig/), then reload the configuration or restart the server."
 }

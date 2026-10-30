@@ -423,5 +423,6 @@
   "gui.useless_stretcher.staff_config.normal_short": "普通 · 30 秒",
   "gui.useless_stretcher.staff_config.permanent_short": "永久",
   "gui.useless_stretcher.staff_config.loot_refresh_short": "箱子刷新：%s",
-  "gui.useless_stretcher.staff_config.loot_refresh_help": "刷新战利品箱，包含原版战利品箱。"
+  "gui.useless_stretcher.staff_config.loot_refresh_help": "刷新战利品箱，包含原版战利品箱。",
+  "gui.useless_stretcher.staff_apotheosis.enable_config_hint": "服务端未开启神化联动，无法框选附魔台。请由服主修改当前世界的 serverconfig/useless_stretcher-server.toml，在 [apotheosis] 下设置 enable = true。单人存档路径：saves/<世界名>/serverconfig/；服务器路径：<世界目录>/serverconfig/。修改后重新加载配置或重启服务器。"
 }
