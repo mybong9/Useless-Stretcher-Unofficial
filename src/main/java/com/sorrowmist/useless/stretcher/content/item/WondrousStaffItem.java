@@ -76,13 +76,11 @@ public class WondrousStaffItem extends EndlessBeafItem {
     /** Exposes the upstream tool and shears abilities while acceleration interactions stay explicit. */
     @Override
     public boolean canPerformAction(ItemStack stack, ToolAction ability) {
-        if (RangeAccelerationSettings.filterMarkingMode(stack)) {
-            return false;
-        }
         // Acceleration owns machine interaction while enabled.  Do not advertise wrench
         // abilities to mods that consult NeoForge's ToolAction API before RightClickBlock.
         // This complements the event interception without changing the G-menu wrench toggle.
-        if (WondrousStaffAcceleration.isEnabled(stack) && isWrenchAbility(ability)) {
+        if (isWrenchAbility(ability) && (WondrousStaffAcceleration.isEnabled(stack)
+                || RangeAccelerationSettings.filterMarkingMode(stack))) {
             return false;
         }
         // Keep the same mining/tool abilities as the upstream staff.  The acceleration

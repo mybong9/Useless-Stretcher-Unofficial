@@ -11,14 +11,14 @@ Minecraft **1.20.1**, **Forge**, mod ID `useless_stretcher`.
 <!-- releases:start -->
 ## 下载 / Releases
 
-最新可安装 JAR、对应源码标签及校验文件见 [GitHub Releases](https://github.com/mybong9/Useless-Stretcher-Unofficial/releases/latest)。
+最新可安装 JAR、对应源码标签见 [GitHub Releases](https://github.com/mybong9/Useless-Stretcher-Unofficial/releases/latest)。
 安装前请查看下方依赖版本表；构建用第三方 API JAR 不属于本模组发布文件。
 <!-- releases:end -->
 
 <!-- runtime-dependencies:start -->
 ## 运行环境与依赖版本
 
-对应发布版本：**1.2.8**。本工程目标为 **Minecraft 1.20.1 / Forge**，使用 **Java 17+**（编译目标为 Java 17）。
+对应发布版本：**1.2.9**。本工程目标为 **Minecraft 1.20.1 / Forge**，使用 **Java 17+**（编译目标为 Java 17）。
 以下依赖范围直接依据该版本发布 JAR 的 `META-INF/mods.toml`，不是编译时所用依赖版本。
 
 ### 必需前置
