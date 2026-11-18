@@ -1203,13 +1203,20 @@ public final class NativeCapsules {
             for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++)
                 if (level.getChunkSource().getChunkNow(chunk.x + dx, chunk.z + dz) == null) return false;
             if (!level.areEntitiesLoaded(chunk.toLong())) return false;
-        for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++) {
-            BlockPos p = entrance.offset(dx, -1, dz);
-            level.setBlock(p, Blocks.OBSIDIAN.defaultBlockState(), 2);
-            for (int dy = 1; dy <= 3; dy++) level.setBlock(p.above(dy), Blocks.AIR.defaultBlockState(), 2);
-        }
-        DimensionCapsuleService.enterAt(player, level, entrance, (side * 90.0F) % 360.0F);
-            release(); return true;
+            try {
+                for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++) {
+                    BlockPos p = entrance.offset(dx, -1, dz);
+                    level.setBlock(p, Blocks.OBSIDIAN.defaultBlockState(), 2);
+                    for (int dy = 1; dy <= 3; dy++) level.setBlock(p.above(dy), Blocks.AIR.defaultBlockState(), 2);
+                }
+                DimensionCapsuleService.enterAt(player, level, entrance, (side * 90.0F) % 360.0F);
+            } catch (RuntimeException failure) {
+                LogUtils.getLogger().error("Capsule entry failed for {}", player.getGameProfile().getName(), failure);
+                player.displayClientMessage(net.minecraft.network.chat.Component.translatable("msg.useless_stretcher.dimension_capsule.failed"), true);
+            } finally {
+                release();
+            }
+            return true;
         }
         void release() { level.getChunkSource().removeRegionTicket(ENTRY_TICKET, chunk, 2, chunk); }
     }
