@@ -22,6 +22,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 
+import org.lwjgl.glfw.GLFW;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -56,6 +58,8 @@ public final class WondrousStaffSummonScreen extends StaffScreen {
     private int footerTop;
     private int footerColumns;
     private int scroll;
+    private boolean draggingListThumb;
+    private double listThumbGrab;
 
     public WondrousStaffSummonScreen(Screen parent, InteractionHand hand) {
         super(Component.translatable("gui.useless_stretcher.staff_summon.title"),
@@ -132,6 +136,14 @@ public final class WondrousStaffSummonScreen extends StaffScreen {
                 panelLeft + 2, panelTop + 5, StretcherScreenStyle.subtleColor(), false);
         StretcherScreenStyle.drawInset(graphics, panelLeft, panelTop + LIST_TOP - 2,
                 panelLeft + panelWidth, listBottom + 2);
+        if (draggingListThumb) {
+            var window = minecraft.getWindow();
+            if (GLFW.glfwGetMouseButton(window.getWindow(), GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_RELEASE) {
+                draggingListThumb = false;
+            } else {
+                dragListThumb(minecraft.mouseHandler.ypos() * height / window.getScreenHeight());
+            }
+        }
         renderRows(graphics, mouseX, mouseY, panelWidth);
     }
 
@@ -173,21 +185,53 @@ public final class WondrousStaffSummonScreen extends StaffScreen {
             graphics.drawString(font, label, panelLeft + 28, y + 4,
                     StretcherScreenStyle.textColor(), false);
         }
-        int total = Math.max(1, rows.size() - visibleRows);
-        if (rows.size() > visibleRows) {
-            int trackTop = panelTop + LIST_TOP;
-            int trackHeight = visibleRows * ROW_HEIGHT;
-            int thumbHeight = Math.max(18, trackHeight * visibleRows / rows.size());
-            int thumbTop = trackTop + (trackHeight - thumbHeight) * first / total;
-            graphics.fill(panelLeft + panelWidth - 6, trackTop, panelLeft + panelWidth - 2,
-                    trackTop + trackHeight, StretcherScreenStyle.shadowColor());
-            graphics.fill(panelLeft + panelWidth - 6, thumbTop, panelLeft + panelWidth - 2,
-                    thumbTop + thumbHeight, StretcherScreenStyle.activeColor());
+        if (maxListScroll() > 0) {
+            int left = panelLeft + panelWidth - 6;
+            int thumbTop = listThumbTop();
+            graphics.fill(left, panelTop + LIST_TOP, left + 4, listBottom, StretcherScreenStyle.shadowColor());
+            graphics.fill(left, thumbTop, left + 4, thumbTop + listThumbHeight(), StretcherScreenStyle.activeColor());
         }
+    }
+
+    private int maxListScroll() {
+        return Math.max(0, rows.size() - visibleRows);
+    }
+
+    private int listThumbHeight() {
+        return Math.max(8, visibleRows * ROW_HEIGHT * visibleRows / Math.max(1, rows.size()));
+    }
+
+    private int listThumbTop() {
+        return panelTop + LIST_TOP + (visibleRows * ROW_HEIGHT - listThumbHeight()) * scroll / Math.max(1, maxListScroll());
+    }
+
+    private void dragListThumb(double y) {
+        int travel = visibleRows * ROW_HEIGHT - listThumbHeight();
+        if (travel <= 0 || maxListScroll() == 0) return;
+        int next = (int) Math.round((y - panelTop - LIST_TOP - listThumbGrab) * maxListScroll() / travel);
+        scroll = net.minecraft.util.Mth.clamp(next, 0, maxListScroll());
+    }
+
+    @Override
+    protected boolean releaseContent(double x, double y, int button) {
+        if (button == 0 && draggingListThumb) {
+            draggingListThumb = false;
+            return true;
+        }
+        return super.releaseContent(x, y, button);
     }
 
     @Override
     protected boolean clickContent(double mouseX, double mouseY, int button) {
+        if (button == 0 && maxListScroll() > 0 && mouseX >= panelLeft + panelWidth - 8
+                && mouseX < panelLeft + panelWidth && mouseY >= panelTop + LIST_TOP && mouseY < listBottom) {
+            int top = listThumbTop();
+            listThumbGrab = mouseY >= top && mouseY < top + listThumbHeight()
+                    ? mouseY - top : listThumbHeight() / 2.0;
+            draggingListThumb = true;
+            dragListThumb(mouseY);
+            return true;
+        }
         if (super.clickContent(mouseX, mouseY, button)) return true;
         if (button != 0) return false;
         if (mouseX < panelLeft + 2 || mouseX >= panelLeft + panelWidth - 8
