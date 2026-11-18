@@ -69,21 +69,12 @@ public final class DimensionCapsulePlacement {
         if (event.phase != net.minecraftforge.event.TickEvent.Phase.END) return;
         Job job = JOBS.poll();
         if (job == null) return;
-        boolean placed;
         try {
-            if (!job.step()) {
-                JOBS.add(job);
-                return;
-            }
-            placed = true;
+            if (!job.step()) JOBS.add(job);
+            else job.finish(true);
         } catch (Exception failure) {
             com.mojang.logging.LogUtils.getLogger().error("Capsule placement failed: {}", job.key, failure);
-            placed = false;
-        }
-        try {
-            job.finish(placed);
-        } catch (RuntimeException failure) {
-            com.mojang.logging.LogUtils.getLogger().error("Capsule completion failed: {}", job.key, failure);
+            job.finish(false);
         }
     }
 

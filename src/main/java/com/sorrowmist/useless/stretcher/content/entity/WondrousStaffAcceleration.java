@@ -325,10 +325,7 @@ public final class WondrousStaffAcceleration {
      * dirt or stone return false.
      */
     public static boolean isValidTarget(Level level, BlockPos pos) {
-        return isValidTarget(level, pos, level.getBlockState(pos), level.getBlockEntity(pos));
-    }
-
-    public static boolean isValidTarget(Level level, BlockPos pos, BlockState state, BlockEntity blockEntity) {
+        BlockState state = level.getBlockState(pos);
         // QuarryPlus performs a full chunk scan and can recursively break/place hundreds of
         // blocks from one ticker call. Replaying that ticker through the staff can consume the
         // entire acceleration budget and starve every other target, so it is intentionally not a
@@ -339,6 +336,7 @@ public final class WondrousStaffAcceleration {
             return false;
         }
         if (state.getBlock() instanceof LightningRodBlock) return true;
+        BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity != null) {
             if (isUnsafeAccelerationTarget(blockEntity)) return false;
             if (blockEntity instanceof IInWorldGridNodeHost) return true;

@@ -104,7 +104,9 @@ public final class DimensionCapsuleService {
                 data.markPlaced(roomKey);
                 if (player.isRemoved() || !player.isAlive() || hasReturnPoint(player)) return;
                 prepareEntrance(target, entrance);
-                if (!enterAt(player, target, entrance, player.getYRot(), player.getXRot())) return;
+                saveReturnPoint(player);
+                player.teleportTo(target, entrance.getX() + 0.5D, entrance.getY(), entrance.getZ() + 0.5D,
+                        player.getYRot(), player.getXRot());
                 player.displayClientMessage(Component.translatable("msg.useless_stretcher.dimension_capsule.entered",
                         entry.id().toString(), entry.dimensionHint()), true);
                     });
@@ -118,7 +120,9 @@ public final class DimensionCapsuleService {
         }
 
         prepareEntrance(target, entrance);
-        if (!enterAt(player, target, entrance, player.getYRot(), player.getXRot())) return;
+        saveReturnPoint(player);
+        player.teleportTo(target, entrance.getX() + 0.5D, entrance.getY(), entrance.getZ() + 0.5D,
+                player.getYRot(), player.getXRot());
         player.displayClientMessage(Component.translatable("msg.useless_stretcher.dimension_capsule.entered",
                 entry.id().toString(), entry.dimensionHint()), true);
     }
@@ -133,22 +137,11 @@ public final class DimensionCapsuleService {
     }
 
     public static void enterAt(ServerPlayer player, ServerLevel target, BlockPos entrance, float yaw) {
-        enterAt(player, target, entrance, yaw, 0);
-    }
-
-    private static boolean enterAt(ServerPlayer player, ServerLevel target, BlockPos entrance, float yaw, float pitch) {
-        if (hasReturnPoint(player)) return false;
+        if (hasReturnPoint(player)) return;
         saveReturnPoint(player);
-        boolean arrived = false;
-        try {
-            double x = entrance.getX() + 0.5D;
-            double z = entrance.getZ() + 0.5D;
-            player.teleportTo(target, x, entrance.getY(), z, yaw, pitch);
-            arrived = player.serverLevel() == target && player.distanceToSqr(x, entrance.getY(), z) <= 4;
-            return arrived;
-        } finally {
-            if (!arrived) clearReturnPoint(player);
-        }
+        player.teleportTo(target, entrance.getX() + 0.5D, entrance.getY(), entrance.getZ() + 0.5D, yaw, 0);
+        if (player.serverLevel() != target || player.distanceToSqr(entrance.getX() + .5,
+                entrance.getY(), entrance.getZ() + .5) > 4) clearReturnPoint(player);
     }
 
     private static void prepareEntrance(ServerLevel target, BlockPos entrance) {
