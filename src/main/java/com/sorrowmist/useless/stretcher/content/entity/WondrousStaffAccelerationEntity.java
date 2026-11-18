@@ -223,12 +223,13 @@ public class WondrousStaffAccelerationEntity extends Entity {
             // vanilla's weather scheduler. They do not mutate a block entity, energy buffer, or
             // inventory, so the generic activity probe can never observe them as "working".
             // Never let dynamic idle throttling silently reduce a rod to the fallback rate.
+            var targetState = level.getBlockState(this.targetPos);
             boolean mayThrottle = isPermanent() && !isIdleThrottleDisabled() && StretcherConfig.idleThrottle()
-                    && !(level.getBlockState(this.targetPos).getBlock()
+                    && !(targetState.getBlock()
                     instanceof net.minecraft.world.level.block.LightningRodBlock);
             boolean throttled = false;
             if (mayThrottle) {
-                if (activityProbe.isWorking(level, this.targetPos, level.getBlockState(this.targetPos))) {
+                if (activityProbe.isWorking(level, this.targetPos, targetState, target)) {
                     observedWorking = true;
                     idleTicks = 0;
                 } else {

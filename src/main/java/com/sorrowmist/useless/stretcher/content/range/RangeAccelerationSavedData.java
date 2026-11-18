@@ -386,16 +386,18 @@ public final class RangeAccelerationSavedData extends com.sorrowmist.uselesscore
                 continue;
             }
             BlockState targetState = level.getBlockState(target);
-            if (!field.matches(target, targetState) || !WondrousStaffAcceleration.isValidTarget(level, target)) {
+            BlockEntity blockEntity = level.getBlockEntity(target);
+            if (!field.matches(target, targetState)
+                    || !WondrousStaffAcceleration.isValidTarget(level, target, targetState, blockEntity)) {
                 state.targetWork.remove(target.asLong());
                 continue;
             }
 
             TargetWork work = state.targetWork.computeIfAbsent(target.asLong(), ignored -> new TargetWork());
-            work.updateTarget(level.getBlockEntity(target));
+            work.updateTarget(blockEntity);
             boolean throttled = false;
             if (field.allowsSleep(target) && StretcherConfig.idleThrottle()) {
-                throttled = work.shouldThrottle(level, target, targetState);
+                throttled = work.shouldThrottle(level, target, targetState, blockEntity);
             } else {
                 work.resetActivity();
             }
@@ -470,7 +472,8 @@ public final class RangeAccelerationSavedData extends com.sorrowmist.uselesscore
                         && !(candidate instanceof Player)
                         && !(candidate instanceof WondrousStaffAccelerationEntity));
         candidates.sort(Comparator.comparingDouble(entity -> entity.distanceToSqr(center)));
-        for (Entity target : candidates.stream().limit(MAX_ENTITY_TARGETS).toList()) {
+        for (int i = 0, count = Math.min(candidates.size(), MAX_ENTITY_TARGETS); i < count; i++) {
+            Entity target = candidates.get(i);
             WondrousStaffAccelerationEntity marker = byTarget.get(target.getUUID());
             if (marker == null || marker.isRemoved()) {
                 marker = new WondrousStaffAccelerationEntity(level, target, field.speed());
@@ -909,8 +912,8 @@ public final class RangeAccelerationSavedData extends com.sorrowmist.uselesscore
             observedWorking = false;
         }
 
-        private boolean shouldThrottle(ServerLevel level, BlockPos pos, BlockState state) {
-            boolean working = activityProbe.isWorking(level, pos, state);
+        private boolean shouldThrottle(ServerLevel level, BlockPos pos, BlockState state, BlockEntity target) {
+            boolean working = activityProbe.isWorking(level, pos, state, target);
             if (working) {
                 observedWorking = true;
                 idleTicks = 0;

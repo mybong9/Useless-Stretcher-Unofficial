@@ -6,6 +6,7 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import org.lwjgl.glfw.GLFW;
 
 /** Common input and clipping; subclasses lay out real widgets without scaling fonts. */
 public abstract class FloatingScreen extends Screen {
@@ -76,6 +77,13 @@ public abstract class FloatingScreen extends Screen {
     }
 
     @Override public final void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        if (scrollbarDragging) {
+            if (GLFW.glfwGetMouseButton(minecraft.getWindow().getWindow(), GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_RELEASE) {
+                scrollbarDragging = false;
+            } else {
+                dragScrollbar(mouseY);
+            }
+        }
         // A server page can replace the screen during its opening callback. Initialize
         // that newly active screen before touching its font, widgets, or clip bounds.
         if (font == null || minecraft == null || !contentInitialized) {
@@ -132,8 +140,8 @@ public abstract class FloatingScreen extends Screen {
     }
     @Override public final boolean mouseReleased(double x, double y, int button) {
         if (window.mouseReleased(button)) return true;
-        if (x < contentLeft() && super.mouseReleased(x, y, button)) return true;
         if (button == 0 && scrollbarDragging) { scrollbarDragging = false; return true; }
+        if (x < contentLeft() && super.mouseReleased(x, y, button)) return true;
         if (releaseContent(x, y, button)) return true;
         return super.mouseReleased(x, y, button);
     }

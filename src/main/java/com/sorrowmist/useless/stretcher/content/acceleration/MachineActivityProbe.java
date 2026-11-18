@@ -33,8 +33,7 @@ public final class MachineActivityProbe {
     private FluidStack[] fluids = NO_FLUIDS;
     private boolean unknownCapabilities;
 
-    public boolean isWorking(ServerLevel level, BlockPos pos, BlockState state) {
-        BlockEntity current = level.getBlockEntity(pos);
+    public boolean isWorking(ServerLevel level, BlockPos pos, BlockState state, BlockEntity current) {
         if (current != target) {
             reset();
             target = current;
@@ -86,9 +85,7 @@ public final class MachineActivityProbe {
             return true;
         }
 
-        long stored = energy == null ? Long.MIN_VALUE : energy.getEnergyStored();
-        boolean changed = stored != lastEnergy;
-        lastEnergy = stored;
+        boolean changed = false;
         if (items.length != slots) {
             items = new ItemStack[slots];
             changed = true;
