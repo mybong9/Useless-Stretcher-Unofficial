@@ -541,8 +541,10 @@ public final class Network {
                         com.sorrowmist.useless.stretcher.client.StretcherConfigScreen.accept(payload)));
 
         UselessStretcherMod.NETWORK.registerToServer(MyriadActionPayload.class, MyriadActionPayload.STREAM_CODEC, Network::handleAction);
-        UselessStretcherMod.NETWORK.registerToClient(MyriadStatePayload.class, MyriadStatePayload.STREAM_CODEC, (payload, context) -> ClientStateReceiver.accept(payload));
-        UselessStretcherMod.NETWORK.registerToClient(PatternPagePayload.class, PatternPagePayload.STREAM_CODEC, (payload, context) -> ClientStateReceiver.acceptPatternPage(payload));
+        UselessStretcherMod.NETWORK.registerToClient(MyriadStatePayload.class, MyriadStatePayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> ClientStateReceiver.accept(payload)));
+        UselessStretcherMod.NETWORK.registerToClient(PatternPagePayload.class, PatternPagePayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> ClientStateReceiver.acceptPatternPage(payload)));
         UselessStretcherMod.NETWORK.registerToServer(PatternPageRequestPayload.class, PatternPageRequestPayload.STREAM_CODEC, (payload, context) -> context.enqueueWork(() -> handlePatternPageRequest(payload, context)));
         UselessStretcherMod.NETWORK.registerToServer(PatternDeletePayload.class, PatternDeletePayload.STREAM_CODEC, (payload, context) -> context.enqueueWork(() -> handlePatternDelete(payload, context)));
         UselessStretcherMod.NETWORK.registerToServer(PatternTrimPayload.class, PatternTrimPayload.STREAM_CODEC, (payload, context) -> context.enqueueWork(() -> {
@@ -560,8 +562,10 @@ public final class Network {
                     com.sorrowmist.useless.stretcher.content.mold.PatternRepositorySearch.deduplicate(player, ref,
                             MyriadPatternStore.get(player.serverLevel()), payload);
                 }));
-        UselessStretcherMod.NETWORK.registerToClient(MoldCatalogPayload.class, MoldCatalogPayload.STREAM_CODEC, (payload, context) -> ClientStateReceiver.acceptMoldCatalog(payload));
-        UselessStretcherMod.NETWORK.registerToClient(FullSlotsPayload.class, FullSlotsPayload.STREAM_CODEC, (payload, context) -> ClientStateReceiver.handleFullSlots(payload));
+        UselessStretcherMod.NETWORK.registerToClient(MoldCatalogPayload.class, MoldCatalogPayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> ClientStateReceiver.acceptMoldCatalog(payload)));
+        UselessStretcherMod.NETWORK.registerToClient(FullSlotsPayload.class, FullSlotsPayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> ClientStateReceiver.handleFullSlots(payload)));
         UselessStretcherMod.NETWORK.registerToClient(StaffTutorialPayload.class, StaffTutorialPayload.STREAM_CODEC, (payload, context) -> ClientStateReceiver.handleStaffTutorial());
         UselessStretcherMod.NETWORK.registerToServer(StaffTutorialOpenedPayload.class, StaffTutorialOpenedPayload.STREAM_CODEC, (payload, context) -> context.enqueueWork(() -> {
                     if (context.player() instanceof ServerPlayer player) {
