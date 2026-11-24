@@ -2,6 +2,7 @@ package com.sorrowmist.useless.stretcher.mixin;
 
 import com.sorrowmist.useless.stretcher.content.entity.StaffPhaseManager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.Pose;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,6 +12,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /** Keep spectator-like movement without changing game mode or interaction permissions. */
 @Mixin(Player.class)
 public abstract class StaffPhaseMovementMixin {
+    @Inject(method = "updatePlayerPose", at = @At("RETURN"))
+    private void showFlightSneakWhilePhasing(CallbackInfo ci) {
+        Player player = (Player) (Object) this;
+        if (player.getPose() == Pose.STANDING && StaffPhaseManager.shouldShowFlightSneak(player)) {
+            player.setPose(Pose.CROUCHING);
+        }
+    }
+
     @Inject(method = "tick", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/player/Player;noPhysics:Z",
             opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER))
     private void phaseBeforeMovement(CallbackInfo ci) {

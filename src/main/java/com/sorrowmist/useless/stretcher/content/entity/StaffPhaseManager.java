@@ -77,6 +77,11 @@ public final class StaffPhaseManager {
         return state.phase() && !state.interaction();
     }
 
+    public static boolean shouldShowFlightSneak(Player player) {
+        return player.isShiftKeyDown() && player.getAbilities().flying && !player.isSpectator()
+                && state(player).phase();
+    }
+
     /** Called after vanilla resets noPhysics, before movement on both sides. */
     public static void movementTick(Player player) {
         var abilities = player.getAbilities();

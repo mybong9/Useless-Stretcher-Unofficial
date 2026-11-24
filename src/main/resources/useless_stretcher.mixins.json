@@ -49,6 +49,7 @@
   "client": [
     "LevelRendererCloudMixin",
     "StaffPhaseLocalMovementMixin",
+    "StaffPhasePlayerRendererMixin",
     "StaffFlightClientMixin",
     "StaffPhaseVisibilityMixin",
     "StaffPhaseInteractionClientMixin"
